@@ -1,0 +1,14 @@
+
+[Unit]
+Description=Telegram Bot
+After=network.target
+
+[Service]
+User=mazyla
+Group=mazyla
+WorkingDirectory=/home/mazyla/Marphling/
+Environment="PYTHONPATH=/home/mazyla/Marphling/"
+ExecStart=/home/mazyla/Marphling/.venv/bin/python /home/mazyla/Marphling/arkade.py
+
+[Install]
+WantedBy=multi-user.target
