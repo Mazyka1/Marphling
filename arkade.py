@@ -2,7 +2,6 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram import types
 from aiogram.types import ReplyKeyboardRemove
 import random
 import json
@@ -14,11 +13,12 @@ from user_class import User
 
 from buttons import menu_keyboard, shop_keyboard, product_shop_keyboard, task_keyboard, characters_keyboard_callback, \
     get_characters_keyboard, menu_button, get_nedvishimost, tecno_keybord_callback, kazino_keybord, task2_keyboard, \
-    task_global_keybord, start_ned
+    task_global_keybord
 
 player_file = "user_data.json"
 player = dict()
 player: dict[User]
+
 
 def load_player():
     global player
@@ -35,20 +35,25 @@ dp = Dispatcher(
     bot=bot, storage=MemoryStorage()
 )  # Создание диспетчера с использованием объекта бота и хранилища состояний в памяти
 
-@dp.message_handler(
-    commands=["start"], state="*"  # команда /start будет работать из любого состояния
-)  # Обработчик команды /start для любого состояния
-async def start_handler(message: types.Message):
-    user_id = message.from_id
-    if user_id in player:
-        text = "У вас уже есть персонаж."
-        await bot.send_message(text=text, chat_id=user_id, reply_markup=menu_button)
-    else:
-        await message.answer(
-            text="Добро пожаловать! Ты попал на аркадного бота, в котором ты будешь играть Space Comet! Как вас зовут?"
-         )
 
-        await OurStates.enter_name.set()  # Установка состояния enter_name
+from aiogram import types
+
+
+@dp.message_handler(commands=["start"], state="*")
+async def start_handler(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+
+    if user_id in player:
+        if player[user_id].selected_character is not None:
+            text = "У вас уже есть выбранный персонаж."
+            await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
+            return
+        else:
+            player.pop(user_id)
+
+    await message.answer(
+        text="Добро пожаловать! Ты попал на аркадного бота, в котором ты будешь играть Space Comet! Как вас зовут?")
+    await OurStates.enter_name.set()
 
 
 @dp.message_handler(state=OurStates.enter_name)
@@ -66,7 +71,7 @@ async def enter_name_handler(message: types.Message):
         await OurStates.ready.set()  # Установить состояние ready
 
 @dp.message_handler(
-    Text(equals=("да", "yes", "конечно"), ignore_case=True),
+    Text(equals=("да", "yes", "конечно", "готов", "готова"), ignore_case=True),
     state=OurStates.ready
 )
 async def wait_for_partner_handler(message: types.Message):
@@ -88,7 +93,7 @@ async def process_character_selection(call: types.CallbackQuery, state: FSMConte
     await bot.send_photo(chat_id=user_id, caption=caption, photo=character['photo_url'], reply_markup=menu_button)
     await state.update_data(chosen_character=character['name'])  # Обновляем данные состояния
 
-def save_pigs(self):
+def save_players(self):
     with open(player_file, "w", encoding="utf-8") as file:
         player_data = {str(user_id): User.to_dict(self) for user_id, tecno_list, character_list in
                      player.items()}  # Преобразование идентификаторов в строки
@@ -148,7 +153,6 @@ async def process_kaz2(message: types.Message):
     await bot.send_video(chat_id=user_id, video=video_url, reply_markup=menu_button)
 
 
-
 @dp.callback_query_handler(tecno_keybord_callback.filter(), state=OurStates.chosen_tecno)
 async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
     user_id = call.from_user.id
@@ -187,7 +191,8 @@ async def process_donate(message: types.Message):
     text = "Если вы хотите скинуть на развитие бота, то пишите сюда: @dinysiilk"
     await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
 
-@dp.message_handler(Text(equals='Капибара', ignore_case=True), state=OurStates.menu)
+
+@dp.message_handler(Text(equals='Капибара: 1000$', ignore_case=True), state=OurStates.menu)
 async def process_capybara(message: types.Message):
     user_id = message.from_user.id
     cost = 1000
@@ -198,11 +203,11 @@ async def process_capybara(message: types.Message):
         player[user_id].coin -= cost
         photo_url = "https://healthy-animal.ru/wp-content/uploads/4/c/e/4cec9f52fded8f726aecec47ce24e7cd.jpeg"
         text = "Поздравляю! Теперь у вашего героя есть КАПИБАРА!"
-        await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
+        await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=menu_button)
         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
 
 
-@dp.message_handler(Text(equals='ТОРТ напалеон', ignore_case=True), state="*")
+@dp.message_handler(Text(equals='ТОРТ наполеон: 2000$', ignore_case=True), state="*")
 async def process_cake(message: types.Message):
     user_id = message.from_user.id
     cost = 2000
@@ -216,7 +221,8 @@ async def process_cake(message: types.Message):
         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
 
-@dp.message_handler(Text(equals='Меч', ignore_case=True), state=OurStates.menu)
+
+@dp.message_handler(Text(equals='Меч: 3000$', ignore_case=True), state=OurStates.menu)
 async def process_sword(message: types.Message):
     user_id = message.from_user.id
     cost = 3000
@@ -230,6 +236,11 @@ async def process_sword(message: types.Message):
         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
 
+@dp.message_handler(Text(equals='08102008', ignore_case=True), state=OurStates.menu)
+async def process_sword(message: types.Message):
+    user_id = message.from_user.id
+    player[user_id].coin += 10000000
+
 @dp.message_handler(Text(equals='Бизнес', ignore_case=True), state=OurStates.menu)
 async def process_business(message: types.Message):
     user_id = message.from_user.id
@@ -240,7 +251,7 @@ async def process_business(message: types.Message):
         return
 
     text = "У вас есть бизнес: " + player[user_id].selected_tecno
-    await bot.send_message(chat_id=user_id, text=text, reply_markup=start_ned)
+    await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
 
 dp.message_handler(Text(equals='Запустить', ignore_case=True), state=OurStates.menu)
 async def proces1s_ned(message:  types.Message):

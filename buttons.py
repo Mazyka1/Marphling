@@ -13,13 +13,17 @@ menu_button.add(
 shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 shop_keyboard.add(
     KeyboardButton("Продуктовый"),
-    KeyboardButton("Недвижимость")
+    KeyboardButton("Недвижимость"),
+)
+shop_keyboard.add(
+    KeyboardButton("МЕНЮ")
 )
 
 kazino_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
 kazino_keybord.add(
     KeyboardButton("Кости"),
-    KeyboardButton("Слоты")
+    KeyboardButton("Слоты"),
+    KeyboardButton("МЕНЮ")
 )
 
 menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -37,7 +41,8 @@ product_shop_keyboard.add(
     KeyboardButton("Капибара: 1000$"),
     KeyboardButton("ТОРТ напалеон: 2000$"),
     KeyboardButton("Меч: 3000$"),
-    KeyboardButton("Задонатить")
+    KeyboardButton("Задонатить"),
+    KeyboardButton("МЕНЮ")
 )
 
 # Buttons for the "Задание" menu
@@ -45,6 +50,9 @@ task_global_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
 task_global_keybord.add(
     KeyboardButton("Легко"),
     KeyboardButton("Сложно")
+)
+task_global_keybord.add(
+    KeyboardButton("МЕНЮ")
 )
 
 task_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -59,10 +67,6 @@ task2_keyboard.add(
     KeyboardButton("Ударить мечом")
 )
 
-start_ned = ReplyKeyboardMarkup(resize_keyboard=True)
-start_ned.add(
-    KeyboardButton("Запустить")
-)
 characters_keyboard_callback = CallbackData("characters", "character_id")
 tecno_keybord_callback = CallbackData("tecno", "tecno_id")
 

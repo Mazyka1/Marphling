@@ -1,5 +1,4 @@
 
-
 tecno_list = [
     {"name": "Негр в шахте", "coin": "1000$/мин",
      "photo_url": "https://thefreethoughtproject.com/.image/t_share/MTg1OTg1ODM4MDEzMjkzNjk3/housing-authority-forces-workers-to-wear-orange-vests-so-nypd-cops-dont-shoot-them.jpg"}
@@ -11,6 +10,5 @@ character_list = [
     {"name": "Shadow Fiend", "photo_url": "https://klike.net/uploads/posts/2023-01/1674105405_3-19.jpg"},
 ]  # Список персонажей с их именами и URL-адресами фотографий
 
-roulette_images = ["🍒", "🍊", "🍇"]
 
-__all__ = ["tecno_list", "character_list", "roulette_images"]
+__all__ = ["tecno_list", "character_list"]
