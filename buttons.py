@@ -67,6 +67,15 @@ task2_keyboard.add(
     KeyboardButton("Ударить мечом")
 )
 
+buisness_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+buisness_keybord.add(
+    KeyboardButton("Запустить"),
+    KeyboardButton("Баланс"),
+)
+buisness_keybord.add(
+    ("МЕНЮ")
+)
+
 characters_keyboard_callback = CallbackData("characters", "character_id")
 tecno_keybord_callback = CallbackData("tecno", "tecno_id")
 

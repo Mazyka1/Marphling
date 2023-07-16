@@ -13,7 +13,7 @@ from user_class import User
 
 from buttons import menu_keyboard, shop_keyboard, product_shop_keyboard, task_keyboard, characters_keyboard_callback, \
     get_characters_keyboard, menu_button, get_nedvishimost, tecno_keybord_callback, kazino_keybord, task2_keyboard, \
-    task_global_keybord
+    task_global_keybord, buisness_keybord
 
 player_file = "user_data.json"
 player = dict()
@@ -30,6 +30,7 @@ def load_player():
     except FileNotFoundError:
         print("Файл не найден")
 
+
 bot = Bot(token=TOKEN)  # Создание объекта бота с использованием токена
 dp = Dispatcher(
     bot=bot, storage=MemoryStorage()
@@ -40,7 +41,7 @@ from aiogram import types
 
 
 @dp.message_handler(commands=["start"], state="*")
-async def start_handler(message: types.Message, state: FSMContext):
+async def start_handler(message: types.Message):
     user_id = message.from_user.id
 
     if user_id in player:
@@ -172,6 +173,25 @@ async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, 
     await bot.send_photo(chat_id=user_id, photo=tecno['photo_url'], reply_markup=menu_button)
     await state.update_data(chosen_tecno=tecno['name'])  # Обновляем данные состояния
 
+@dp.message_handler(Text(equals='Запустить', ignore_case=True), state=OurStates.menu)
+async def process_buisnes(message: types.Message):
+    for user_id, user in player.items():
+        selected_tecno = user.selected_tecno
+        if selected_tecno:
+            user_id = message.from_user.id
+            tecno = next((t for t in tecno_list if t['name'] == selected_tecno), None)
+            income_rate = tecno['income_rate']
+            income = income_rate / 60
+            income_rounded = round(income)
+            user.coin += income_rounded
+            text = "Ваш бизнес запущен."
+            await bot.send_message(text=text, reply_markup=buisness_keybord, chat_id=user_id)
+
+@dp.message_handler(Text(equals='Баланс', ignore_case=True), state=OurStates.menu)
+async def process_buisnes(message: types.Message):
+    user_id = message.from_user.id
+    text = f"Баланс: {player[user_id].coin}"
+    await bot.send_message(chat_id=user_id, text=text)
 
 @dp.message_handler(Text(equals='Продуктовый', ignore_case=True), state=OurStates.menu)
 async def process_shop(message: types.Message):
@@ -251,11 +271,7 @@ async def process_business(message: types.Message):
         return
 
     text = "У вас есть бизнес: " + player[user_id].selected_tecno
-    await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
-
-dp.message_handler(Text(equals='Запустить', ignore_case=True), state=OurStates.menu)
-async def proces1s_ned(message:  types.Message):
-    user_id = message.from_user.id
+    await message.answer(text=text, reply_markup=buisness_keybord)
 
 @dp.message_handler(Text(equals='Задание', ignore_case=True), state=OurStates.menu)
 async def process_question(message: types.Message):

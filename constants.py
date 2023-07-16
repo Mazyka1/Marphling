@@ -1,7 +1,8 @@
 
 tecno_list = [
     {"name": "Негр в шахте", "coin": "1000$/мин",
-     "photo_url": "https://thefreethoughtproject.com/.image/t_share/MTg1OTg1ODM4MDEzMjkzNjk3/housing-authority-forces-workers-to-wear-orange-vests-so-nypd-cops-dont-shoot-them.jpg"}
+     "photo_url": "https://thefreethoughtproject.com/.image/t_share/MTg1OTg1ODM4MDEzMjkzNjk3/housing-authority-forces-workers-to-wear-orange-vests-so-nypd-cops-dont-shoot-them.jpg",
+     "income_rate": 1000}
 ]
 character_list = [
     {"name": "Pudge",
