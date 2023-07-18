@@ -15,6 +15,10 @@ class User:
         self.hp = 0
         self.boss_life = 0
         self.boss2_life = 0
+        self.reward_received = False
+        self.buy_ned = False
+        self.start_buisnes = False
+        self.buy_food = None
 
     def to_dict(self):
         return {

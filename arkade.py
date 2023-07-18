@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -6,14 +8,17 @@ from aiogram.types import ReplyKeyboardRemove
 import random
 import json
 
-from constants import character_list, tecno_list
+from constants import character_list, tecno_list, shop_list
 from config import TOKEN
 from states import OurStates
 from user_class import User
 
-from buttons import menu_keyboard, shop_keyboard, product_shop_keyboard, task_keyboard, characters_keyboard_callback, \
+from buttons import menu_keyboard, shop_keyboard, task_keyboard, characters_keyboard_callback, \
     get_characters_keyboard, menu_button, get_nedvishimost, tecno_keybord_callback, kazino_keybord, task2_keyboard, \
-    task_global_keybord, buisness_keybord
+    task_global_keybord, buisness_keybord, shop_keybord_callback, shop1
+
+from aiogram import types
+
 
 player_file = "user_data.json"
 player = dict()
@@ -36,17 +41,13 @@ dp = Dispatcher(
     bot=bot, storage=MemoryStorage()
 )  # Создание диспетчера с использованием объекта бота и хранилища состояний в памяти
 
-
-from aiogram import types
-
-
 @dp.message_handler(commands=["start"], state="*")
 async def start_handler(message: types.Message):
     user_id = message.from_user.id
 
     if user_id in player:
         if player[user_id].selected_character is not None:
-            text = "У вас уже есть выбранный персонаж."
+            text = "Вы уже создали персонажа"
             await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
             return
         else:
@@ -55,7 +56,6 @@ async def start_handler(message: types.Message):
     await message.answer(
         text="Добро пожаловать! Ты попал на аркадного бота, в котором ты будешь играть Space Comet! Как вас зовут?")
     await OurStates.enter_name.set()
-
 
 @dp.message_handler(state=OurStates.enter_name)
 async def enter_name_handler(message: types.Message):
@@ -86,6 +86,10 @@ async def process_character_selection(call: types.CallbackQuery, state: FSMConte
     selected_character_id = callback_data["character_id"]
     selected_character_id = int(selected_character_id)
     character = character_list[selected_character_id]
+
+    await bot.answer_callback_query(
+        call.id
+    )
 
     user_id = call.from_user.id
     player[user_id].selected_character = character['name']
@@ -130,9 +134,15 @@ async def process_shop(message: types.Message):
 
 @dp.message_handler(Text(equals=("Недвижимость"), ignore_case=True), state=OurStates.menu)
 async def process_ned(message: types.Message):
+    user_id = message.from_user.id
     tecno_keyboard = get_nedvishimost(tecno_list)
-    await message.answer(text="Выберите недвижимость:", reply_markup=tecno_keyboard)
-    await OurStates.chosen_tecno.set()
+    if player[user_id].buy_ned is True:
+        text = "У вас уже есть бизнес"
+        await bot.send_message(chat_id=user_id, text=text)
+    else:
+        player[user_id].buy_ned = True
+        await message.answer(text="Выберите недвижимость:", reply_markup=tecno_keyboard)
+        await OurStates.chosen_tecno.set()
 
 @dp.message_handler(Text(equals='Казино', ignore_case=True), state=OurStates.menu)
 async def process_kaz(message: types.Message):
@@ -156,52 +166,93 @@ async def process_kaz2(message: types.Message):
 
 @dp.callback_query_handler(tecno_keybord_callback.filter(), state=OurStates.chosen_tecno)
 async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
-    user_id = call.from_user.id
     selected_tecno_id = callback_data["tecno_id"]
     selected_tecno_id = int(selected_tecno_id)
     tecno = tecno_list[selected_tecno_id]
 
-    if player[user_id].selected_tecno is True:
-        text = "У вас уже есть недвижимость"
-        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
-        return
+    await bot.answer_callback_query(
+        call.id
+    )
 
     user_id = call.from_user.id
     player[user_id].selected_tecno = tecno['name']
-
-    await bot.send_message(text=f"Вы купили недвижимость: {tecno['name']}, {tecno['coin']}", chat_id=user_id)
-    await bot.send_photo(chat_id=user_id, photo=tecno['photo_url'], reply_markup=menu_button)
+    text = f"Вы купили недвижимость: {tecno['name']}, {tecno['coin']}"
+    await bot.send_photo(chat_id=user_id, photo=tecno['photo_url'], caption=text, reply_markup=menu_button)
     await state.update_data(chosen_tecno=tecno['name'])  # Обновляем данные состояния
 
+async def update_income():
+    while True:
+        for user_id, user in player.items():
+            await asyncio.sleep(60)
+            selected_tecno = user.selected_tecno
+            if selected_tecno:
+                tecno = next((t for t in tecno_list if t['name'] == selected_tecno), None)
+                income_rate = tecno['income_rate']
+                income_per_minute_rounded = round(income_rate)
+                user.coin += income_per_minute_rounded
+
+# Основная функция обработки сообщений
 @dp.message_handler(Text(equals='Запустить', ignore_case=True), state=OurStates.menu)
 async def process_buisnes(message: types.Message):
-    for user_id, user in player.items():
-        selected_tecno = user.selected_tecno
-        if selected_tecno:
-            user_id = message.from_user.id
-            tecno = next((t for t in tecno_list if t['name'] == selected_tecno), None)
-            income_rate = tecno['income_rate']
-            income = income_rate / 60
-            income_rounded = round(income)
-            user.coin += income_rounded
-            text = "Ваш бизнес запущен."
-            await bot.send_message(text=text, reply_markup=buisness_keybord, chat_id=user_id)
+    user_id = message.from_user.id
+    if player[user_id].selected_tecno is None:
+        text = "У вас еще нет выбранного бизнеса. Пожалуйста, выберите недвижимость в магазине."
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
+
+    if player[user_id].start_buisnes is True:
+        text = "У вас уже запущен бизнес"
+        await bot.send_message(chat_id=user_id, text=text)
+    else:
+        player[user_id].start_buisnes = True
+        selected_tecno = player[user_id].selected_tecno
+        tecno = next((t for t in tecno_list if t['name'] == selected_tecno), None)
+        income_rate = tecno['income_rate']
+        text = f"Запускаю бизнес...\nДоход: {income_rate}$\мин"
+        await message.answer(text=text)
+        await asyncio.create_task(update_income())
 
 @dp.message_handler(Text(equals='Баланс', ignore_case=True), state=OurStates.menu)
 async def process_buisnes(message: types.Message):
     user_id = message.from_user.id
-    text = f"Баланс: {player[user_id].coin}"
+    if player[user_id].selected_tecno is None:
+        text = "У вас еще нет выбранного бизнеса. Пожалуйста, выберите недвижимость в магазине."
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
+        return
+    text = f"Баланс: {player[user_id].coin}$"
     await bot.send_message(chat_id=user_id, text=text)
 
 @dp.message_handler(Text(equals='Продуктовый', ignore_case=True), state=OurStates.menu)
 async def process_shop(message: types.Message):
+    shop2_keyboard = shop1(shop_list)
 
     photo_url = "https://ibb.co/WPsf792"  # Замените на URL-адрес фотографии из вашего магазина
     caption = "Добро пожаловать в магазин! Вот наше предложение."
     text = "Выбор:"
 
     await bot.send_photo(chat_id=message.chat.id, photo=photo_url, caption=caption, reply_markup=ReplyKeyboardRemove())
-    await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=product_shop_keyboard)
+    await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=shop2_keyboard)
+    await OurStates.buy_burger.set()
+
+@dp.callback_query_handler(shop_keybord_callback.filter(), state=OurStates.buy_burger)
+async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    selected_shop_id = callback_data["shop_id"]
+    selected_shop_id = int(selected_shop_id)
+    shop = shop_list[selected_shop_id]
+    user_id = call.from_user.id
+
+    await bot.answer_callback_query(
+        call.id
+    )
+
+    if player[user_id].coin < shop['cost2']:
+        text = "У вас недостаточно средств"
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
+    else:
+        player[user_id].buy_food = shop['name']
+        text = f"Вы купили: {shop['name']}"
+        player[user_id].coin -= shop['cost2']
+        await bot.send_photo(chat_id=user_id, photo=shop['photo_url'], caption=text, reply_markup=menu_button)
+        await state.update_data(chosen_shop=shop['name'])  # Обновляем данные состояния
 
 
 @dp.message_handler(Text(equals='Задонатить', ignore_case=True), state=OurStates.menu)
@@ -212,49 +263,49 @@ async def process_donate(message: types.Message):
     await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
 
 
-@dp.message_handler(Text(equals='Капибара: 1000$', ignore_case=True), state=OurStates.menu)
-async def process_capybara(message: types.Message):
-    user_id = message.from_user.id
-    cost = 1000
-    if cost > player[user_id].coin:
-        text = "У вас недостаточно $"
-        await bot.send_message(chat_id=user_id, text=text)
-    else:
-        player[user_id].coin -= cost
-        photo_url = "https://healthy-animal.ru/wp-content/uploads/4/c/e/4cec9f52fded8f726aecec47ce24e7cd.jpeg"
-        text = "Поздравляю! Теперь у вашего героя есть КАПИБАРА!"
-        await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=menu_button)
-        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
-
-
-@dp.message_handler(Text(equals='ТОРТ наполеон: 2000$', ignore_case=True), state="*")
-async def process_cake(message: types.Message):
-    user_id = message.from_user.id
-    cost = 2000
-    if cost > player[user_id].coin:
-        text = "У вас недостаточно $"
-        await bot.send_message(chat_id=user_id, text=text)
-    else:
-        player[user_id].coin -= cost
-        photo_url = "https://vseglisty.ru/wp-content/uploads/c/3/6/c36cf5b360d02572e3ced378f16e4a67.jpg"
-        text = "Поздравляю! Теперь у вашего героя есть ТОРТ!"
-        await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
-        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
-
-
-@dp.message_handler(Text(equals='Меч: 3000$', ignore_case=True), state=OurStates.menu)
-async def process_sword(message: types.Message):
-    user_id = message.from_user.id
-    cost = 3000
-    if cost > player[user_id].coin:
-        text = "У вас недостаточно $"
-        await bot.send_message(chat_id=user_id, text=text)
-    else:
-        player[user_id].coin -= cost
-        photo_url = "https://gamerwall.pro/uploads/posts/2021-11/1637935796_1-gamerwall-pro-p-mainkraft-oboi-oruzhie-oboi-na-rabochii-st-1.jpg"
-        text = "Поздравляю! Теперь у вашего героя есть МЕЧ!"
-        await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
-        await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
+# @dp.message_handler(Text(equals='Капибара: 1000$', ignore_case=True), state=OurStates.menu)
+# async def process_capybara(message: types.Message):
+#     user_id = message.from_user.id
+#     cost = 1000
+#     if cost > player[user_id].coin:
+#         text = "У вас недостаточно $"
+#         await bot.send_message(chat_id=user_id, text=text)
+#     else:
+#         player[user_id].coin -= cost
+#         photo_url = "https://healthy-animal.ru/wp-content/uploads/4/c/e/4cec9f52fded8f726aecec47ce24e7cd.jpeg"
+#         text = "Поздравляю! Теперь у вашего героя есть КАПИБАРА!"
+#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=menu_button)
+#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
+#
+#
+# @dp.message_handler(Text(equals='ТОРТ: 2000$', ignore_case=True), state="*")
+# async def process_cake(message: types.Message):
+#     user_id = message.from_user.id
+#     cost = 2000
+#     if cost > player[user_id].coin:
+#         text = "У вас недостаточно $"
+#         await bot.send_message(chat_id=user_id, text=text)
+#     else:
+#         player[user_id].coin -= cost
+#         photo_url = "https://vseglisty.ru/wp-content/uploads/c/3/6/c36cf5b360d02572e3ced378f16e4a67.jpg"
+#         text = "Поздравляю! Теперь у вашего героя есть ТОРТ!"
+#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
+#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
+#
+#
+# @dp.message_handler(Text(equals='Меч: 3000$', ignore_case=True), state=OurStates.menu)
+# async def process_sword(message: types.Message):
+#     user_id = message.from_user.id
+#     cost = 3000
+#     if cost > player[user_id].coin:
+#         text = "У вас недостаточно $"
+#         await bot.send_message(chat_id=user_id, text=text)
+#     else:
+#         player[user_id].coin -= cost
+#         photo_url = "https://gamerwall.pro/uploads/posts/2021-11/1637935796_1-gamerwall-pro-p-mainkraft-oboi-oruzhie-oboi-na-rabochii-st-1.jpg"
+#         text = "Поздравляю! Теперь у вашего героя есть МЕЧ!"
+#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
+#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
 
 @dp.message_handler(Text(equals='08102008', ignore_case=True), state=OurStates.menu)
 async def process_sword(message: types.Message):
@@ -283,6 +334,8 @@ async def process_question(message: types.Message):
 @dp.message_handler(Text(equals='Легко', ignore_case=True), state=OurStates.menu)
 async def process_question1(message: types.Message):
     user_id = message.from_user.id
+    player[user_id].reward_received = False
+    user_id = message.from_user.id
     if player[user_id].boss_life != 1000:
         player[user_id].boss_life = 1000
     text = "Вы попали на легкое задание! Вы должны убить босса!"
@@ -294,6 +347,7 @@ async def process_question1(message: types.Message):
 @dp.message_handler(Text(equals='Сложно', ignore_case=True), state=OurStates.menu)
 async def process_question2(message: types.Message):
     user_id = message.from_user.id
+    player[user_id].reward_received = False
     if player[user_id].hp != 1000:
         player[user_id].hp = 1000
     if player[user_id].boss2_life != 3000:
@@ -309,14 +363,17 @@ async def process_question2(message: types.Message):
 @dp.message_handler(Text(equals='Ударить', ignore_case=True), state=OurStates.question)
 async def process_ydar(message: types.Message):
     user_id = message.from_user.id
-
     random_number = random.randint(1, 10)
 
     if random_number < 5:
-        hp_damage = random.randint(300, 500)
-        text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. "
-        photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
-        await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
+        if player[user_id].reward_received:
+            await OurStates.menu.set()
+            await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+        else:
+            hp_damage = random.randint(300, 500)
+            text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. "
+            photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
+            await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
     else:
         boss_damage = random.randint(100, 300)
         player[user_id].boss_life -= boss_damage
@@ -324,16 +381,23 @@ async def process_ydar(message: types.Message):
         text = f"Вы наносите боссу {boss_damage} единиц урона. "
 
         if player[user_id].boss_life <= 0:
-            reward = random.randint(100, 200)
-            player[user_id].coin += reward
-            text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
-            await message.answer(text=text, reply_markup=menu_button)
-            await OurStates.end_question.set()
-            return
-        else:
-            text += f"Осталось {player[user_id].boss_life} единиц жизни у босса. "
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                player[user_id].reward_received = True
+                reward = random.randint(100, 200)
+                player[user_id].coin += reward
+                text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
+        if player[user_id].boss_life >= 0:
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                text += f"Осталось {player[user_id].boss_life} единиц жизни у босса. "
 
         await bot.send_photo(chat_id=user_id, photo=photo, caption=text)
+
 
 @dp.message_handler(Text(equals='Слабо ударить', ignore_case=True), state=OurStates.question2)
 async def process_slow_ydar(message: types.Message):
@@ -342,15 +406,19 @@ async def process_slow_ydar(message: types.Message):
     random_number = random.randint(1, 10)
 
     if random_number >= 9:
-        hp_damage = random.randint(400, 500)
-        player[user_id].hp -= hp_damage
-        text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. У вас осталось {player[user_id].hp}."
-        photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
-        await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
-        if player[user_id].hp <= 0:
-            text += f"Вы проиграли, попробуйте еще раз!"
-            await message.answer(text=text, reply_markup=menu_button)
-            return
+        if player[user_id].reward_received:
+            await OurStates.menu.set()
+            await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+        else:
+            hp_damage = random.randint(400, 500)
+            player[user_id].hp -= hp_damage
+            text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. У вас осталось {player[user_id].hp}."
+            photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
+            await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
+            if player[user_id].hp <= 0:
+                text += f"Вы проиграли, попробуйте еще раз!"
+                await message.answer(text=text, reply_markup=menu_button)
+                return
     else:
         boss_damage = random.randint(100, 300)
         player[user_id].boss2_life -= boss_damage
@@ -358,13 +426,22 @@ async def process_slow_ydar(message: types.Message):
         text = f"Вы наносите боссу {boss_damage} единиц урона. "
 
         if player[user_id].boss2_life <= 0:
-            reward = random.randint(800, 1000)
-            player[user_id].coin += reward
-            text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
-            await message.answer(text=text, reply_markup=menu_button)
-            return
-        else:
-            text += f"Осталось {player[user_id].boss2_life} единиц жизни у босса. "
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                player[user_id].reward_received = True
+                reward = random.randint(800, 1000)
+                player[user_id].coin += reward
+                text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
+                await message.answer(text=text, reply_markup=menu_button)
+                return
+        if player[user_id].boss2_life >= 0:
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                text += f"Осталось {player[user_id].boss2_life} единиц жизни у босса. "
 
         await bot.send_photo(chat_id=user_id, photo=photo, caption=text)
 
@@ -374,15 +451,19 @@ async def process_sword_ydar(message: types.Message):
     random_number = random.randint(1, 10)
 
     if random_number >= 5:
-        hp_damage = random.randint(400, 500)
-        player[user_id].hp -= hp_damage
-        text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. У вас осталось {player[user_id].hp}."
-        photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
-        await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
-        if player[user_id].hp <= 0:
-            caption = f"Вы проиграли, попробуйте еще раз!"
-            await message.answer(text=caption, reply_markup=menu_button)
-            return
+        if player[user_id].reward_received:
+            await OurStates.menu.set()
+            await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+        else:
+            hp_damage = random.randint(400, 500)
+            player[user_id].hp -= hp_damage
+            text = f"Вы промахнулись, и Босс наносит вам {hp_damage} единиц урона. У вас осталось {player[user_id].hp}."
+            photo = 'https://catherineasquithgallery.com/uploads/posts/2021-03/1614550176_49-p-memi-na-belom-fone-53.jpg'
+            await bot.send_photo(chat_id=user_id, caption=text, photo=photo)
+            if player[user_id].hp <= 0:
+                caption = f"Вы проиграли, попробуйте еще раз!"
+                await message.answer(text=caption, reply_markup=menu_button)
+                return
     else:
         boss_damage = random.randint(600, 700)
         player[user_id].boss2_life -= boss_damage
@@ -390,13 +471,22 @@ async def process_sword_ydar(message: types.Message):
         text = f"Вы наносите боссу {boss_damage} единиц урона. "
 
         if player[user_id].boss2_life <= 0:
-            reward = random.randint(800, 1000)
-            player[user_id].coin += reward
-            text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
-            await message.answer(text=text, reply_markup=menu_button)
-            return
-        else:
-            text += f"Осталось {player[user_id].boss2_life} единиц жизни у босса. "
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                player[user_id].reward_received = True
+                reward = random.randint(800, 1000)
+                player[user_id].coin += reward
+                text += f"Поздравляю! Вы победили босса и получаете {reward} монет!"
+                await message.answer(text=text, reply_markup=menu_button)
+                return
+        if player[user_id].boss2_life >= 0:
+            if player[user_id].reward_received:
+                await OurStates.menu.set()
+                await bot.send_message(chat_id=user_id, text="Вы уже получили награду", reply_markup=menu_button)
+            else:
+                text += f"Осталось {player[user_id].boss2_life} единиц жизни у босса. "
 
         await bot.send_photo(chat_id=user_id, photo=photo, caption=text)
 

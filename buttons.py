@@ -35,15 +35,15 @@ menu_keyboard.add(
     KeyboardButton("Бизнес")
 )
 
-product_shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-
-product_shop_keyboard.add(
-    KeyboardButton("Капибара: 1000$"),
-    KeyboardButton("ТОРТ напалеон: 2000$"),
-    KeyboardButton("Меч: 3000$"),
-    KeyboardButton("Задонатить"),
-    KeyboardButton("МЕНЮ")
-)
+# product_shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+#
+# product_shop_keyboard.add(
+#     KeyboardButton("Капибара: 1000$"),
+#     KeyboardButton("ТОРТ: 2000$"),
+#     KeyboardButton("Меч: 3000$"),
+#     KeyboardButton("Задонатить"),
+#     KeyboardButton("МЕНЮ")
+# )
 
 # Buttons for the "Задание" menu
 task_global_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -78,6 +78,7 @@ buisness_keybord.add(
 
 characters_keyboard_callback = CallbackData("characters", "character_id")
 tecno_keybord_callback = CallbackData("tecno", "tecno_id")
+shop_keybord_callback = CallbackData("shop", "shop_id")
 
 
 def get_characters_keyboard(character_list: list):
@@ -104,5 +105,18 @@ def get_nedvishimost(tecno_list: list):
         tecno_keybord.add(button)
 
     return tecno_keybord
+
+def shop1(shop_list: list):
+    shop2_keyboard = InlineKeyboardMarkup(row_width=2)
+
+    for idx, shop in enumerate(shop_list):
+        button = InlineKeyboardButton(
+            text=f"{shop['name']}, {shop['cost']}",
+            callback_data=shop_keybord_callback.new(shop_id=idx)
+
+        )
+        shop2_keyboard.add(button)
+
+    return shop2_keyboard
 
 

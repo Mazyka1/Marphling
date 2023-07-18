@@ -13,3 +13,6 @@ class OurStates(StatesGroup):
     chosen_tecno = State()
     menu = State()
     question2 = State()
+    reward = State()
+    menu2 = State()
+    buy_burger = State()

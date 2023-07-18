@@ -11,5 +11,18 @@ character_list = [
     {"name": "Shadow Fiend", "photo_url": "https://klike.net/uploads/posts/2023-01/1674105405_3-19.jpg"},
 ]  # Список персонажей с их именами и URL-адресами фотографий
 
+map = [
+    {"name": "Россия",
+     "photo_url": ""}
+]
 
-__all__ = ["tecno_list", "character_list"]
+shop_list = [
+    {"name": "Капибара",
+     "cost": "1000$", "cost2": 1000,
+     "photo_url": "https://healthy-animal.ru/wp-content/uploads/4/c/e/4cec9f52fded8f726aecec47ce24e7cd.jpeg"},
+    {"name": "ТОРТ", "cost": "2000$", "cost2": 2000, "photo_url": "https://vseglisty.ru/wp-content/uploads/c/3/6/c36cf5b360d02572e3ced378f16e4a67.jpg"},
+    {"name": "Меч", "cost": "3000$", "cost2": 3000, "photo_url": "https://gamerwall.pro/uploads/posts/2021-11/1637935796_1-gamerwall-pro-p-mainkraft-oboi-oruzhie-oboi-na-rabochii-st-1.jpg"}
+]
+
+
+__all__ = ["tecno_list", "character_list", "shop_list"]
