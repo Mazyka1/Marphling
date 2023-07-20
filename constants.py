@@ -11,9 +11,11 @@ character_list = [
     {"name": "Shadow Fiend", "photo_url": "https://klike.net/uploads/posts/2023-01/1674105405_3-19.jpg"},
 ]  # Список персонажей с их именами и URL-адресами фотографий
 
-map = [
+map_list = [
     {"name": "Россия",
-     "photo_url": ""}
+     "photo_url": "https://ibb.co/KsyXWY3"},
+    {"name": "Las Vegas",
+     "photo_url": "https://ibb.co/KzbyLTP"}
 ]
 
 shop_list = [
@@ -24,5 +26,9 @@ shop_list = [
     {"name": "Меч", "cost": "3000$", "cost2": 3000, "photo_url": "https://gamerwall.pro/uploads/posts/2021-11/1637935796_1-gamerwall-pro-p-mainkraft-oboi-oruzhie-oboi-na-rabochii-st-1.jpg"}
 ]
 
+car_list = [
+    {"name": "BMW ZAPOR",
+     "photo_url": "https://cs1.gtavicecity.ru/attachments/9a0d4/2020-03/original/1a9fb719555010e9e28d4e06d77f7e1f4a60433e/11475-GTA5-2020-03-03-11-06-16-64.jpg"}
+]
 
 __all__ = ["tecno_list", "character_list", "shop_list"]

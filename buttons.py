@@ -14,6 +14,7 @@ shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 shop_keyboard.add(
     KeyboardButton("Продуктовый"),
     KeyboardButton("Недвижимость"),
+    KeyboardButton("Автосалон")
 )
 shop_keyboard.add(
     KeyboardButton("МЕНЮ")
@@ -23,6 +24,8 @@ kazino_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
 kazino_keybord.add(
     KeyboardButton("Кости"),
     KeyboardButton("Слоты"),
+)
+kazino_keybord.add(
     KeyboardButton("МЕНЮ")
 )
 
@@ -34,16 +37,6 @@ menu_keyboard.add(
     KeyboardButton("Карта"),
     KeyboardButton("Бизнес")
 )
-
-# product_shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
-#
-# product_shop_keyboard.add(
-#     KeyboardButton("Капибара: 1000$"),
-#     KeyboardButton("ТОРТ: 2000$"),
-#     KeyboardButton("Меч: 3000$"),
-#     KeyboardButton("Задонатить"),
-#     KeyboardButton("МЕНЮ")
-# )
 
 # Buttons for the "Задание" menu
 task_global_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -73,12 +66,13 @@ buisness_keybord.add(
     KeyboardButton("Баланс"),
 )
 buisness_keybord.add(
-    ("МЕНЮ")
+    KeyboardButton("МЕНЮ")
 )
 
 characters_keyboard_callback = CallbackData("characters", "character_id")
 tecno_keybord_callback = CallbackData("tecno", "tecno_id")
 shop_keybord_callback = CallbackData("shop", "shop_id")
+map_keybord_callback = CallbackData("map", "map_id")
 
 
 def get_characters_keyboard(character_list: list):
@@ -118,5 +112,19 @@ def shop1(shop_list: list):
         shop2_keyboard.add(button)
 
     return shop2_keyboard
+
+def map1(map_list: list, current_city: str):
+    map_keyboard = InlineKeyboardMarkup(row_width=2)
+
+    for idx, map1 in enumerate(map_list):
+        if map1['name'] != current_city:
+            button = InlineKeyboardButton(
+                text=f"{map1['name']}",
+                callback_data=map_keybord_callback.new(map_id=idx)
+
+            )
+            map_keyboard.add(button)
+
+    return map_keyboard
 
 

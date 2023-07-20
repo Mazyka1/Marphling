@@ -1,46 +1,53 @@
-__all__ = ["User"]
+# user_class.py
 
 class User:
-    user_id: int
-    name: str
-    coin: int
-    selected_character: None
-
-    def __init__(self, user_id: int, name: str = None):
-        self.selected_character = None
+    def __init__(self, user_id, name):
         self.user_id = user_id
         self.name = name
-        self.coin = 0
+        self.selected_character = None
         self.selected_tecno = None
-        self.hp = 0
-        self.boss_life = 0
-        self.boss2_life = 0
-        self.reward_received = False
-        self.buy_ned = False
-        self.start_buisnes = False
+        self.selected_shop = None
         self.buy_food = None
-
-    def to_dict(self):
-        return {
-            "selected_character": self.selected_character,
-            "coin": self.coin,
-            "user_id": self.user_id,
-            "name": self.name,
-            "selected_tecno": self.selected_tecno,
-            "hp": self.hp,
-            "boss_life": self.boss_life,
-            "boss2_life": self.boss2_life
-        }
+        self.buy_ned = None
+        self.start_buisnes = None
+        self.coin = 0
+        self.reward_received = False
+        self.boss_life = None
+        self.hp = None
+        self.boss2_life = None
+        self.current_city = "Россия"  # Add the current_city attribute
 
     @classmethod
     def from_dict(cls, data):
-        return cls(
-            name=data.get("name"),
-            coin=data.get("coin"),
-            selected_character=data.get("selected_character"),
-            user_id=data.get("user_id"),
-            selected_tecno= data.get("selected_tecno"),
-            hp=data.get('hp'),
-            boss_life = data.get('boss_life'),
-            boss2_life = data.get("boss2_life")
-        )
+        user = cls(user_id=data["user_id"], name=data["name"])
+        user.selected_character = data["selected_character"]
+        user.selected_tecno = data["selected_tecno"]
+        user.selected_shop = data["selected_shop"]
+        user.buy_food = data["buy_food"]
+        user.buy_ned = data["buy_ned"]
+        user.start_buisnes = data["start_buisnes"]
+        user.coin = data["coin"]
+        user.reward_received = data["reward_received"]
+        user.boss_life = data["boss_life"]
+        user.hp = data["hp"]
+        user.boss2_life = data["boss2_life"]
+        user.current_city = data["current_city"]  # Load the current_city attribute from the dictionary
+        return user
+
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "selected_character": self.selected_character,
+            "selected_tecno": self.selected_tecno,
+            "selected_shop": self.selected_shop,
+            "buy_food": self.buy_food,
+            "buy_ned": self.buy_ned,
+            "start_buisnes": self.start_buisnes,
+            "coin": self.coin,
+            "reward_received": self.reward_received,
+            "boss_life": self.boss_life,
+            "hp": self.hp,
+            "boss2_life": self.boss2_life,
+            "current_city": self.current_city,  # Save the current_city attribute to the dictionary
+        }

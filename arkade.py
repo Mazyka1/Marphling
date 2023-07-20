@@ -8,14 +8,14 @@ from aiogram.types import ReplyKeyboardRemove
 import random
 import json
 
-from constants import character_list, tecno_list, shop_list
+from constants import character_list, tecno_list, shop_list, map_list
 from config import TOKEN
 from states import OurStates
 from user_class import User
 
 from buttons import menu_keyboard, shop_keyboard, task_keyboard, characters_keyboard_callback, \
     get_characters_keyboard, menu_button, get_nedvishimost, tecno_keybord_callback, kazino_keybord, task2_keyboard, \
-    task_global_keybord, buisness_keybord, shop_keybord_callback, shop1
+    task_global_keybord, buisness_keybord, shop_keybord_callback, shop1, map_keybord_callback, map1
 
 from aiogram import types
 
@@ -98,6 +98,7 @@ async def process_character_selection(call: types.CallbackQuery, state: FSMConte
     await bot.send_photo(chat_id=user_id, caption=caption, photo=character['photo_url'], reply_markup=menu_button)
     await state.update_data(chosen_character=character['name'])  # Обновляем данные состояния
 
+
 def save_players(self):
     with open(player_file, "w", encoding="utf-8") as file:
         player_data = {str(user_id): User.to_dict(self) for user_id, tecno_list, character_list in
@@ -118,12 +119,13 @@ async def menu(message: types.Message):
     await bot.send_photo(chat_id=user_id, caption=caption, photo=character_photo_url, reply_markup=menu_keyboard)
 
 @dp.message_handler(Text(equals='Карта', ignore_case=True), state=OurStates.menu)
-async def process_kaz1(message: types.Message):
+async def process_map1call(message: types.Message):
     user_id = message.from_user.id
-    video_url = "https://yandex.ru/video/preview/17407417412192363873"
-    await bot.send_video(chat_id=user_id, video=video_url, reply_markup=menu_button)
-
-
+    current_city = player[user_id].current_city
+    map_keyboard = map1(map_list, current_city)
+    photo_url = "https://ibb.co/wwLKj1g"
+    caption = f"Вы сейчас находитесь в '{current_city}'. Куда вы хотите поехать?"
+    await bot.send_photo(chat_id=user_id, photo=photo_url, caption=caption, reply_markup=map_keyboard)
 
 @dp.message_handler(Text(equals='Магазин', ignore_case=True), state=OurStates.menu)
 async def process_shop(message: types.Message):
@@ -233,8 +235,10 @@ async def process_shop(message: types.Message):
     await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=shop2_keyboard)
     await OurStates.buy_burger.set()
 
+
+
 @dp.callback_query_handler(shop_keybord_callback.filter(), state=OurStates.buy_burger)
-async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+async def process_shopo_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
     selected_shop_id = callback_data["shop_id"]
     selected_shop_id = int(selected_shop_id)
     shop = shop_list[selected_shop_id]
@@ -254,6 +258,21 @@ async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, 
         await bot.send_photo(chat_id=user_id, photo=shop['photo_url'], caption=text, reply_markup=menu_button)
         await state.update_data(chosen_shop=shop['name'])  # Обновляем данные состояния
 
+@dp.callback_query_handler(map_keybord_callback.filter(), state=OurStates.menu)
+async def process_tecno_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    selected_map_id = callback_data["map_id"]
+    selected_map_id = int(selected_map_id)
+    selected_map = map_list[selected_map_id]
+    user_id = call.from_user.id
+
+    await bot.answer_callback_query(
+        call.id
+    )
+
+    text = f"Вы приехали в: '{selected_map['name']}'"
+    await bot.send_photo(chat_id=user_id, photo=selected_map['photo_url'], caption=text, reply_markup=menu_button)
+    await state.update_data(chosen_map=selected_map['name'])
+
 
 @dp.message_handler(Text(equals='Задонатить', ignore_case=True), state=OurStates.menu)
 async def process_donate(message: types.Message):
@@ -261,51 +280,6 @@ async def process_donate(message: types.Message):
 
     text = "Если вы хотите скинуть на развитие бота, то пишите сюда: @dinysiilk"
     await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
-
-
-# @dp.message_handler(Text(equals='Капибара: 1000$', ignore_case=True), state=OurStates.menu)
-# async def process_capybara(message: types.Message):
-#     user_id = message.from_user.id
-#     cost = 1000
-#     if cost > player[user_id].coin:
-#         text = "У вас недостаточно $"
-#         await bot.send_message(chat_id=user_id, text=text)
-#     else:
-#         player[user_id].coin -= cost
-#         photo_url = "https://healthy-animal.ru/wp-content/uploads/4/c/e/4cec9f52fded8f726aecec47ce24e7cd.jpeg"
-#         text = "Поздравляю! Теперь у вашего героя есть КАПИБАРА!"
-#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=menu_button)
-#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
-#
-#
-# @dp.message_handler(Text(equals='ТОРТ: 2000$', ignore_case=True), state="*")
-# async def process_cake(message: types.Message):
-#     user_id = message.from_user.id
-#     cost = 2000
-#     if cost > player[user_id].coin:
-#         text = "У вас недостаточно $"
-#         await bot.send_message(chat_id=user_id, text=text)
-#     else:
-#         player[user_id].coin -= cost
-#         photo_url = "https://vseglisty.ru/wp-content/uploads/c/3/6/c36cf5b360d02572e3ced378f16e4a67.jpg"
-#         text = "Поздравляю! Теперь у вашего героя есть ТОРТ!"
-#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
-#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
-#
-#
-# @dp.message_handler(Text(equals='Меч: 3000$', ignore_case=True), state=OurStates.menu)
-# async def process_sword(message: types.Message):
-#     user_id = message.from_user.id
-#     cost = 3000
-#     if cost > player[user_id].coin:
-#         text = "У вас недостаточно $"
-#         await bot.send_message(chat_id=user_id, text=text)
-#     else:
-#         player[user_id].coin -= cost
-#         photo_url = "https://gamerwall.pro/uploads/posts/2021-11/1637935796_1-gamerwall-pro-p-mainkraft-oboi-oruzhie-oboi-na-rabochii-st-1.jpg"
-#         text = "Поздравляю! Теперь у вашего героя есть МЕЧ!"
-#         await bot.send_photo(chat_id=message.chat.id, photo=photo_url, reply_markup=ReplyKeyboardRemove())
-#         await bot.send_message(chat_id=message.chat.id, text=text, reply_markup=menu_button)
 
 @dp.message_handler(Text(equals='08102008', ignore_case=True), state=OurStates.menu)
 async def process_sword(message: types.Message):
