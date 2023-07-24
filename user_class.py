@@ -8,14 +8,15 @@ class User:
         self.selected_tecno = None
         self.selected_shop = None
         self.buy_food = None
-        self.buy_ned = None
+        self.buy_ned = False
         self.start_buisnes = None
         self.coin = 0
         self.reward_received = False
         self.boss_life = None
         self.hp = None
         self.boss2_life = None
-        self.current_city = "Россия"  # Add the current_city attribute
+        self.current_city = None
+        self.buy_car = False
 
     @classmethod
     def from_dict(cls, data):
@@ -32,6 +33,7 @@ class User:
         user.hp = data["hp"]
         user.boss2_life = data["boss2_life"]
         user.current_city = data["current_city"]  # Load the current_city attribute from the dictionary
+        user.buy_car = data["buy_car"]
         return user
 
     def to_dict(self):
@@ -50,4 +52,5 @@ class User:
             "hp": self.hp,
             "boss2_life": self.boss2_life,
             "current_city": self.current_city,  # Save the current_city attribute to the dictionary
+            "buy_car": self.buy_car
         }

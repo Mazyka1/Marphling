@@ -2,6 +2,8 @@ __all__ = ["OurStates"]
 
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from constants import map_list
+
 
 class OurStates(StatesGroup):
     enter_name = State()

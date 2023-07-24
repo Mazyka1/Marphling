@@ -2,7 +2,9 @@
 tecno_list = [
     {"name": "Негр в шахте", "coin": "1000$/мин",
      "photo_url": "https://thefreethoughtproject.com/.image/t_share/MTg1OTg1ODM4MDEzMjkzNjk3/housing-authority-forces-workers-to-wear-orange-vests-so-nypd-cops-dont-shoot-them.jpg",
-     "income_rate": 1000}
+     "income_rate": 1000,
+     "cost": 10000,
+     "cost2": "10000$"}
 ]
 character_list = [
     {"name": "Pudge",
@@ -13,9 +15,14 @@ character_list = [
 
 map_list = [
     {"name": "Россия",
-     "photo_url": "https://ibb.co/KsyXWY3"},
+     "photo_url": "https://ibb.co/KsyXWY3",
+     "place": "20 км",
+     "place2": 20},
     {"name": "Las Vegas",
-     "photo_url": "https://ibb.co/KzbyLTP"}
+     "photo_url": "https://ibb.co/KzbyLTP",
+     "state": "menu2",
+     "place": "20 км",
+     "place2": 20}
 ]
 
 shop_list = [
@@ -28,7 +35,11 @@ shop_list = [
 
 car_list = [
     {"name": "BMW ZAPOR",
-     "photo_url": "https://cs1.gtavicecity.ru/attachments/9a0d4/2020-03/original/1a9fb719555010e9e28d4e06d77f7e1f4a60433e/11475-GTA5-2020-03-03-11-06-16-64.jpg"}
+     "photo_url": "https://cs1.gtavicecity.ru/attachments/9a0d4/2020-03/original/1a9fb719555010e9e28d4e06d77f7e1f4a60433e/11475-GTA5-2020-03-03-11-06-16-64.jpg",
+     "speed": "10км/мин",
+     "speed2": 10,
+     "cost": 20000,
+     "cost2": "20000$"}
 ]
 
 __all__ = ["tecno_list", "character_list", "shop_list"]

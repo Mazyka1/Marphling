@@ -12,8 +12,6 @@ menu_button.add(
 
 shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 shop_keyboard.add(
-    KeyboardButton("Продуктовый"),
-    KeyboardButton("Недвижимость"),
     KeyboardButton("Автосалон")
 )
 shop_keyboard.add(
@@ -29,11 +27,26 @@ kazino_keybord.add(
     KeyboardButton("МЕНЮ")
 )
 
+shop3_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+shop3_keybord.add(
+    KeyboardButton("Недвижимость"),
+    KeyboardButton("Продуктовый")
+)
+shop3_keybord.add(
+    KeyboardButton("МЕНЮ")
+)
+
 menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 menu_keyboard.add(
-    KeyboardButton("Магазин"),
+    KeyboardButton("Автосалон"),
     KeyboardButton("Казино"),
     KeyboardButton("Задание"),
+    KeyboardButton("Карта")
+)
+
+menu2_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+menu2_keyboard.add(
+    KeyboardButton("Магазин"),
     KeyboardButton("Карта"),
     KeyboardButton("Бизнес")
 )
@@ -73,6 +86,7 @@ characters_keyboard_callback = CallbackData("characters", "character_id")
 tecno_keybord_callback = CallbackData("tecno", "tecno_id")
 shop_keybord_callback = CallbackData("shop", "shop_id")
 map_keybord_callback = CallbackData("map", "map_id")
+car_keybord_callback = CallbackData("car", "car_id")
 
 
 def get_characters_keyboard(character_list: list):
@@ -92,7 +106,7 @@ def get_nedvishimost(tecno_list: list):
 
     for idx, tecno in enumerate(tecno_list):
         button = InlineKeyboardButton(
-            text=f"{tecno['name']} {tecno['coin']} ",
+            text=f"{tecno['name']}, {tecno['coin']}, {tecno['cost2']}",
             callback_data=tecno_keybord_callback.new(tecno_id=idx)
 
         )
@@ -119,12 +133,25 @@ def map1(map_list: list, current_city: str):
     for idx, map1 in enumerate(map_list):
         if map1['name'] != current_city:
             button = InlineKeyboardButton(
-                text=f"{map1['name']}",
+                text=f"{map1['name']}, {map1['place']}",
                 callback_data=map_keybord_callback.new(map_id=idx)
 
             )
             map_keyboard.add(button)
 
     return map_keyboard
+
+def car(car_list: list):
+    car_keyboard = InlineKeyboardMarkup(row_width=2)
+
+    for idx, car in enumerate(car_list):
+            button = InlineKeyboardButton(
+                text=f"{car['name']}, {car['speed']}, {car['cost2']}",
+                callback_data=car_keybord_callback.new(car_id=idx)
+
+            )
+            car_keyboard.add(button)
+
+    return car_keyboard
 
 
