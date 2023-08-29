@@ -17,6 +17,7 @@ class User:
         self.boss2_life = None
         self.current_city = None
         self.buy_car = False
+        self.user_items = []
 
     @classmethod
     def from_dict(cls, data):

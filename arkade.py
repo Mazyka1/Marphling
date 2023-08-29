@@ -8,7 +8,7 @@ from aiogram.types import ReplyKeyboardRemove
 import random
 import json
 
-from constants import character_list, tecno_list, shop_list, map_list, car_list
+from constants import character_list, tecno_list, shop_list, map_list, car_list, random_hello
 from config import TOKEN
 from states import OurStates
 from user_class import User
@@ -96,19 +96,26 @@ async def wait_for_partner_handler(message: types.Message):
     await OurStates.chosen_person.set()
 
 
-@dp.message_handler(Text(equals='МЕНЮ', ignore_case=True), state=OurStates.menu)
+@dp.message_handler(Text(equals='МЕНЮ', ignore_case=True), state=[OurStates.menu, OurStates.menu2])
 async def menu(message: types.Message):
     user_id = message.from_user.id
+    random_message = random.choice(random_hello)
+    name = player[user_id].name
+    place = player[user_id].current_city
+    dengi = player[user_id].coin
 
     selected_character = player[user_id].selected_character
     character = next((c for c in character_list if c['name'] == selected_character), None)
     character_photo_url = character['photo_url']
 
-    caption = f"Меню:\nВаш персонаж: {selected_character}\nБаланс: {player[user_id].coin}$"
+    caption = f"<b>{random_message}, {name}!</b> Сейчас ты находишься в городе <b>'{place}'.</b> Денег у тебя <b>{dengi}$.</b>"
 
-    await bot.send_photo(chat_id=user_id, caption=caption, photo=character_photo_url, reply_markup=menu_keyboard)
-
-
+    if player[user_id].current_city == 'Россия':
+        await bot.send_photo(chat_id=user_id, caption=caption, photo=character_photo_url, reply_markup=menu_keyboard,
+                             parse_mode="HTML")
+    else:
+        await bot.send_photo(chat_id=user_id, caption=caption, photo=character_photo_url, reply_markup=menu2_keyboard,
+                             parse_mode="HTML")
 @dp.message_handler(Text(equals='Карта', ignore_case=True), state=[OurStates.menu, OurStates.menu2])
 async def process_map1call(message: types.Message):
     user_id = message.from_user.id
@@ -129,19 +136,6 @@ async def process_donate(message: types.Message):
 
     text = "Здесь вы можете купить машину:"
     await bot.send_message(chat_id=user_id, text=text, reply_markup=car_keyboard)
-
-# 2 Меню
-@dp.message_handler(Text(equals='МЕНЮ', ignore_case=True), state=OurStates.menu2)
-async def menu(message: types.Message):
-    user_id = message.from_user.id
-
-    selected_character = player[user_id].selected_character
-    character = next((c for c in character_list if c['name'] == selected_character), None)
-    character_photo_url = character['photo_url']
-
-    caption = f"Меню:\nВаш персонаж: {selected_character}\nБаланс: {player[user_id].coin}$"
-
-    await bot.send_photo(chat_id=user_id, caption=caption, photo=character_photo_url, reply_markup=menu2_keyboard)
 
 @dp.message_handler(Text(equals='Магазин', ignore_case=True), state=OurStates.menu2)
 async def process_shop(message: types.Message):
@@ -399,7 +393,7 @@ async def process_sword_ydar(message: types.Message):
             else:
                 text += f"Осталось {player[user_id].boss2_life} единиц жизни у босса. "
 
-        await bot.send_photo(chat_id=user_id, photo=photo, caption=text, reply_markup=menu_button)
+        await bot.send_photo(chat_id=user_id, photo=photo, caption=text)
 
 
 # Кнопки
@@ -409,22 +403,28 @@ async def process_shopo_selection(call: types.CallbackQuery, state: FSMContext, 
     selected_shop_id = int(selected_shop_id)
     shop = shop_list[selected_shop_id]
     user_id = call.from_user.id
+    user_items = player[user_id].user_items
 
     await bot.answer_callback_query(
         call.id
     )
 
-    if player[user_id].coin < shop['cost2']:
+    if shop['name'] in user_items:
+        text = "Вы уже купили эту вещь"
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
+        await OurStates.menu2.set()
+    elif player[user_id].coin < shop['cost2']:
         text = "У вас недостаточно средств"
         await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_button)
-        await OurStates.menu.set()
+        await OurStates.menu2.set()
     else:
         player[user_id].buy_food = shop['name']
         text = f"Вы купили: {shop['name']}"
         player[user_id].coin -= shop['cost2']
         await bot.send_photo(chat_id=user_id, photo=shop['photo_url'], caption=text, reply_markup=menu_button)
         await state.update_data(chosen_shop=shop['name'])  # Обновляем данные состояния
-        await OurStates.menu.set()
+        await OurStates.menu2.set()
+        player[user_id].user_items.append(shop['name'])
 
 @dp.callback_query_handler(map_keybord_callback.filter(), state=[OurStates.menu, OurStates.menu2])
 async def process_map_selection(call: types.CallbackQuery, state: FSMContext, callback_data: dict):

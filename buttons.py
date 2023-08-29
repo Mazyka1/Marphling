@@ -3,14 +3,14 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardMar
 from aiogram.utils.callback_data import CallbackData
 
 
-menu_button = ReplyKeyboardMarkup(resize_keyboard=True)
+menu_button = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
 menu_button.add(
     KeyboardButton("МЕНЮ"),
 )
 # Buttons for the "Магазин" menu
 
-shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+shop_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 shop_keyboard.add(
     KeyboardButton("Автосалон")
 )
@@ -18,7 +18,7 @@ shop_keyboard.add(
     KeyboardButton("МЕНЮ")
 )
 
-kazino_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+kazino_keybord = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 kazino_keybord.add(
     KeyboardButton("Кости"),
     KeyboardButton("Слоты"),
@@ -27,7 +27,7 @@ kazino_keybord.add(
     KeyboardButton("МЕНЮ")
 )
 
-shop3_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+shop3_keybord = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 shop3_keybord.add(
     KeyboardButton("Недвижимость"),
     KeyboardButton("Продуктовый")
@@ -36,7 +36,7 @@ shop3_keybord.add(
     KeyboardButton("МЕНЮ")
 )
 
-menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+menu_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 menu_keyboard.add(
     KeyboardButton("Автосалон"),
     KeyboardButton("Казино"),
@@ -44,7 +44,7 @@ menu_keyboard.add(
     KeyboardButton("Карта")
 )
 
-menu2_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+menu2_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 menu2_keyboard.add(
     KeyboardButton("Магазин"),
     KeyboardButton("Карта"),
@@ -52,7 +52,7 @@ menu2_keyboard.add(
 )
 
 # Buttons for the "Задание" menu
-task_global_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+task_global_keybord = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 task_global_keybord.add(
     KeyboardButton("Легко"),
     KeyboardButton("Сложно")
@@ -61,19 +61,19 @@ task_global_keybord.add(
     KeyboardButton("МЕНЮ")
 )
 
-task_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+task_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 task_keyboard.add(
     KeyboardButton("Ударить")
 )
 
 
-task2_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+task2_keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 task2_keyboard.add(
     KeyboardButton("Слабо ударить"),
     KeyboardButton("Ударить мечом")
 )
 
-buisness_keybord = ReplyKeyboardMarkup(resize_keyboard=True)
+buisness_keybord = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 buisness_keybord.add(
     KeyboardButton("Запустить"),
     KeyboardButton("Баланс"),
@@ -153,5 +153,4 @@ def car(car_list: list):
             car_keyboard.add(button)
 
     return car_keyboard
-
 

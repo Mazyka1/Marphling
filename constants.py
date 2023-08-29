@@ -1,10 +1,28 @@
+random_hello = [
+    "Привет",
+    "хаййййййй",
+    "Добрый день",
+    "Здорово",
+    "Алоха",
+    "Салют",
+    "Мир дому твоему",
+    "Вечер в хату",
+    "Рад тебя видеть",
+    "Здравия желаю",
+    "Зло пожаловать",
+    "Слушаю тебя",
+    "С приветом по планетам",
+    "Салам",
+    "Хеллоу"
+]
 
 tecno_list = [
     {"name": "Негр в шахте", "coin": "1000$/мин",
      "photo_url": "https://thefreethoughtproject.com/.image/t_share/MTg1OTg1ODM4MDEzMjkzNjk3/housing-authority-forces-workers-to-wear-orange-vests-so-nypd-cops-dont-shoot-them.jpg",
      "income_rate": 1000,
      "cost": 10000,
-     "cost2": "10000$"}
+     "cost2": "10000$"
+     }
 ]
 character_list = [
     {"name": "Pudge",
@@ -14,11 +32,13 @@ character_list = [
 ]  # Список персонажей с их именами и URL-адресами фотографий
 
 map_list = [
-    {"name": "Россия",
+    {"map_m": 0,
+     "name": "Россия",
      "photo_url": "https://ibb.co/KsyXWY3",
      "place": "20 км",
      "place2": 20},
-    {"name": "Las Vegas",
+    {"map_m": 1,
+     "name": "Las Vegas",
      "photo_url": "https://ibb.co/KzbyLTP",
      "state": "menu2",
      "place": "20 км",
